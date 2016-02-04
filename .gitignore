@@ -1,0 +1,25 @@
+# Output directories
+bin/
+obj/
+
+# Per-user project and solution settings
+*.opensdf
+*.sdf
+*.sln.docstates.suo
+*.suo
+*.user
+
+# ReSharper caches
+_ReSharper.Caches/
+
+# Intellisense
+*.VC.opendb
+*.VC.db
+
+# Temporary files
+*.metaproj
+*.bak
+
+# Performance sessions and reports
+*.psess
+*.vsp
