@@ -23,3 +23,6 @@ _ReSharper.Caches/
 # Performance sessions and reports
 *.psess
 *.vsp
+
+# Package cache
+packages/
