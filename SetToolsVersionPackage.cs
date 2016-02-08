@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio;
@@ -80,6 +81,42 @@ namespace SetToolsVersion
             }
         }
 
+        private void Log(string format, params object[] args)
+        {
+            var outputWindow =
+                GetService(typeof(SVsOutputWindow)) as IVsOutputWindow;
+            Throw.IfNull(outputWindow, "SVsOutputWindow");
+
+            IVsOutputWindowPane pane;
+            ErrorHandler.ThrowOnFailure(outputWindow.GetPane(
+                VSConstants.GUID_BuildOutputWindowPane, out pane));
+
+            ErrorHandler.ThrowOnFailure(pane.OutputString(
+                String.Format(format, args)));
+        }
+
+        private string _originalToolsVersion;
+        private string _forcedToolsVersion = "12.0";
+        const string MSBUILDDEFAULTTOOLSVERSION = "MSBUILDDEFAULTTOOLSVERSION";
+
+        void SetMsBuildDefaultToolsVersion()
+        {
+            _originalToolsVersion =
+                Environment.GetEnvironmentVariable(MSBUILDDEFAULTTOOLSVERSION);
+            Environment.SetEnvironmentVariable(MSBUILDDEFAULTTOOLSVERSION,
+                _forcedToolsVersion);
+            Log("Setting {0} to {1}\n", MSBUILDDEFAULTTOOLSVERSION,
+                _forcedToolsVersion);
+        }
+
+        void RestoreMsBuildDefaultToolsVersion()
+        {
+            Environment.SetEnvironmentVariable(MSBUILDDEFAULTTOOLSVERSION,
+                _originalToolsVersion);
+            Log("Restoring {0} to {1}\n", MSBUILDDEFAULTTOOLSVERSION,
+                _originalToolsVersion ?? "<null>");
+        }
+
         public int UpdateSolution_Begin(ref int pfCancelUpdate)
         {
             return VSConstants.S_OK;
@@ -88,17 +125,20 @@ namespace SetToolsVersion
         public int UpdateSolution_Done(int fSucceeded,
             int fModified, int fCancelCommand)
         {
+            RestoreMsBuildDefaultToolsVersion();
+            return VSConstants.S_OK;
+        }
+
+        public int UpdateSolution_Cancel()
+        {
+            RestoreMsBuildDefaultToolsVersion();
             return VSConstants.S_OK;
         }
 
         public int UpdateSolution_StartUpdate(
             ref int pfCancelUpdate)
         {
-            return VSConstants.S_OK;
-        }
-
-        public int UpdateSolution_Cancel()
-        {
+            SetMsBuildDefaultToolsVersion();
             return VSConstants.S_OK;
         }
 
