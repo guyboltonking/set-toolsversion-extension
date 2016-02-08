@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
@@ -95,26 +96,67 @@ namespace SetToolsVersion
                 String.Format(format, args)));
         }
 
+        private const string ToolsVersionFile = ".toolsversion";
+
+        private string LoadToolsVersionFromFile()
+        {
+            var solution = GetService(typeof(SVsSolution)) as IVsSolution;
+            Throw.IfNull(solution, "SVsSolution");
+
+            string solutionDirectory;
+            string solutionFile;
+            string userOptsFile;
+            ErrorHandler.ThrowOnFailure(
+                solution.GetSolutionInfo(out solutionDirectory, out solutionFile,
+                    out userOptsFile));
+
+            var toolsVersionFile =
+                Path.Combine(solutionDirectory, ToolsVersionFile);
+
+            return File.Exists(toolsVersionFile) ?
+                File.ReadAllText(toolsVersionFile).Trim() :
+                null;
+        }
+
         private string _originalToolsVersion;
-        private string _forcedToolsVersion = "12.0";
-        const string MSBUILDDEFAULTTOOLSVERSION = "MSBUILDDEFAULTTOOLSVERSION";
+        private bool _restoreOriginalToolsVersion;
+
+        private const string MsBuildDefaultToolsVersion = "MSBUILDDEFAULTTOOLSVERSION";
 
         void SetMsBuildDefaultToolsVersion()
         {
-            _originalToolsVersion =
-                Environment.GetEnvironmentVariable(MSBUILDDEFAULTTOOLSVERSION);
-            Environment.SetEnvironmentVariable(MSBUILDDEFAULTTOOLSVERSION,
-                _forcedToolsVersion);
-            Log("Setting {0} to {1}\n", MSBUILDDEFAULTTOOLSVERSION,
-                _forcedToolsVersion);
+            var forcedToolsVersion = LoadToolsVersionFromFile();
+
+            _restoreOriginalToolsVersion = false;
+
+            if (!String.IsNullOrEmpty(forcedToolsVersion))
+            {
+                _originalToolsVersion =
+                    Environment.GetEnvironmentVariable(MsBuildDefaultToolsVersion);
+                _restoreOriginalToolsVersion = true;
+                Environment.SetEnvironmentVariable(MsBuildDefaultToolsVersion,
+                    forcedToolsVersion);
+                Log("Setting {0} to {1}\n", MsBuildDefaultToolsVersion,
+                    forcedToolsVersion);
+            }
         }
 
         void RestoreMsBuildDefaultToolsVersion()
         {
-            Environment.SetEnvironmentVariable(MSBUILDDEFAULTTOOLSVERSION,
-                _originalToolsVersion);
-            Log("Restoring {0} to {1}\n", MSBUILDDEFAULTTOOLSVERSION,
-                _originalToolsVersion ?? "<null>");
+            if (_restoreOriginalToolsVersion)
+            {
+                Environment.SetEnvironmentVariable(MsBuildDefaultToolsVersion,
+                    _originalToolsVersion);
+                if (String.IsNullOrEmpty(_originalToolsVersion))
+                {
+                    Log("Restoring {0}\n", MsBuildDefaultToolsVersion);
+                }
+                else
+                {
+                    Log("Restoring {0} to {1}\n", MsBuildDefaultToolsVersion,
+                        _originalToolsVersion);
+                }
+            }
         }
 
         public int UpdateSolution_Begin(ref int pfCancelUpdate)
