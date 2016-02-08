@@ -41,8 +41,11 @@ namespace SetToolsVersion
     [ProvideAutoLoad(UIContextGuids80.SolutionExists)]
     [Guid(VSPackage1.PackageGuidString)]
     [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "pkgdef, VS and vsixmanifest are valid VS terms")]
-    public sealed class VSPackage1: Package
+    public sealed class VSPackage1: Package, IVsUpdateSolutionEvents2
     {
+        private uint _updateSolutionEventsCookie;
+        private IVsSolutionBuildManager2 _solutionBuildManager = null;
+
         /// <summary>
         /// VSPackage1 GUID string.
         /// </summary>
@@ -59,8 +62,6 @@ namespace SetToolsVersion
             // initialization is the Initialize method.
         }
 
-        #region Package Members
-
         /// <summary>
         /// Initialization of the package; this method is called right after the package is sited, so this is the place
         /// where you can put all the initialization code that rely on services provided by VisualStudio.
@@ -68,8 +69,69 @@ namespace SetToolsVersion
         protected override void Initialize()
         {
             base.Initialize();
+
+            _solutionBuildManager =
+                ServiceProvider.GlobalProvider.GetService(
+                    typeof (SVsSolutionBuildManager)) as
+                    IVsSolutionBuildManager2;
+            Throw.IfNull(_solutionBuildManager, "_solutionBuildManager");
+            ErrorHandler.ThrowOnFailure(
+                _solutionBuildManager.AdviseUpdateSolutionEvents(this,
+                    out _updateSolutionEventsCookie));
         }
 
-        #endregion
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+
+            if (_solutionBuildManager != null &&
+                _updateSolutionEventsCookie != 0)
+            {
+                _solutionBuildManager.UnadviseUpdateSolutionEvents(
+                    _updateSolutionEventsCookie);
+            }
+        }
+
+        public int UpdateSolution_Begin(ref int pfCancelUpdate)
+        {
+            return VSConstants.S_OK;
+        }
+
+        public int UpdateSolution_Done(int fSucceeded,
+            int fModified, int fCancelCommand)
+        {
+            return VSConstants.S_OK;
+        }
+
+        public int UpdateSolution_StartUpdate(
+            ref int pfCancelUpdate)
+        {
+            return VSConstants.S_OK;
+        }
+
+        public int UpdateSolution_Cancel()
+        {
+            return VSConstants.S_OK;
+        }
+
+        public int OnActiveProjectCfgChange(
+            IVsHierarchy pIVsHierarchy)
+        {
+            return VSConstants.S_OK;
+        }
+
+        public int UpdateProjectCfg_Begin(
+            IVsHierarchy pHierProj, IVsCfg pCfgProj,
+            IVsCfg pCfgSln, uint dwAction, ref int pfCancel)
+        {
+            return VSConstants.S_OK;
+        }
+
+        public int UpdateProjectCfg_Done(
+            IVsHierarchy pHierProj, IVsCfg pCfgProj,
+            IVsCfg pCfgSln, uint dwAction, int fSuccess, int fCancel)
+        {
+            return VSConstants.S_OK;
+        }
     }
 }
