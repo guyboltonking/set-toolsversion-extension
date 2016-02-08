@@ -1,10 +1,4 @@
-﻿//------------------------------------------------------------------------------
-// <copyright file="VSPackage1.cs" company="Microsoft">
-//     Copyright (c) Microsoft.  All rights reserved.
-// </copyright>
-//------------------------------------------------------------------------------
-
-using System;
+﻿using System;
 using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -39,22 +33,22 @@ namespace SetToolsVersion
     [PackageRegistration(UseManagedResourcesOnly = true)]
     [InstalledProductRegistration("#110", "#112", "1.0", IconResourceID = 400)] // Info on this package for Help/About
     [ProvideAutoLoad(UIContextGuids80.SolutionExists)]
-    [Guid(VSPackage1.PackageGuidString)]
+    [Guid(SetToolsVersionPackage.PackageGuidString)]
     [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "pkgdef, VS and vsixmanifest are valid VS terms")]
-    public sealed class VSPackage1: Package, IVsUpdateSolutionEvents2
+    public sealed class SetToolsVersionPackage: Package, IVsUpdateSolutionEvents2
     {
         private uint _updateSolutionEventsCookie;
         private IVsSolutionBuildManager2 _solutionBuildManager = null;
 
         /// <summary>
-        /// VSPackage1 GUID string.
+        /// SetToolsVersionPackage GUID string.
         /// </summary>
         public const string PackageGuidString = "d310fc35-db47-4b95-8ea0-7f370585afff";
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="VSPackage1"/> class.
+        /// Initializes a new instance of the <see cref="SetToolsVersionPackage"/> class.
         /// </summary>
-        public VSPackage1()
+        public SetToolsVersionPackage()
         {
             // Inside this method you can place any initialization code that does not require
             // any Visual Studio service because at this point the package object is created but
