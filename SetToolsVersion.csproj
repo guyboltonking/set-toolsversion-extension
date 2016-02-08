@@ -24,7 +24,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>set_toolsversion_extension</RootNamespace>
-    <AssemblyName>set-toolsversion-extension</AssemblyName>
+    <AssemblyName>SetToolsVersion</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
     <IncludeAssemblyInVSIXContainer>true</IncludeAssemblyInVSIXContainer>
